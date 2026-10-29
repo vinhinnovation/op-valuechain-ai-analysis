@@ -94,8 +94,13 @@ td.hc{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .zoomUI{position:absolute;left:12px;bottom:12px;display:flex;flex-direction:column;gap:4px;z-index:5}
 .zoomUI button{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:16px;font-weight:700;color:var(--teal9);box-shadow:0 1px 3px rgba(0,0,0,.1)}
 .zoomUI button:hover{background:var(--mint)}
+#viewBar{position:absolute;left:50%;transform:translateX(-50%);bottom:12px;display:flex;gap:2px;padding:3px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.15);z-index:6}
+#viewBar button{border:0;background:transparent;padding:7px 16px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--teal9);cursor:pointer;white-space:nowrap}
+#viewBar button:hover{background:var(--mint)}
+#viewBar button.on{background:var(--teal9);color:#fff}
+@media(max-width:900px){#viewBar{bottom:56px}#viewBar button{padding:6px 10px;font-size:11.5px}}
 #zlabel{font-size:11px;text-align:center;color:var(--mute);background:#fff;border:1px solid var(--line);border-radius:6px;padding:2px 0}
-#minimap{position:absolute;right:12px;bottom:12px;width:220px;height:150px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:8px;z-index:5;cursor:pointer}
+#minimap{position:absolute;right:12px;bottom:58px;width:220px;height:150px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:8px;z-index:5;cursor:pointer}
 .legend{position:absolute;left:12px;top:10px;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:11px;z-index:5;max-width:320px;line-height:1.55}
 .legend b{font-size:11px}
 .legend .ln{display:inline-block;width:26px;height:0;border-top:2.5px solid;vertical-align:middle;margin-right:5px}
@@ -295,6 +300,9 @@ tr.more td{text-align:center;padding:10px;color:var(--teal9);font-weight:700;cur
       <button id="zfit" title="Fit all" style="font-size:12px">Fit</button>
     </div>
     <div id="lensLegend"><b>AI Agent vs Human lens</b><br><i style="background:#1a9a5b"></i>AI Agent <i style="background:#d98a00;margin-left:8px"></i>AI-assisted <i style="background:#5a4fa0;margin-left:8px"></i>Human-led<br><small>Assessed: all 1,222 activities, all functions. Bar on a position = share of its activities.</small></div>
+    <div id="viewBar" role="tablist" aria-label="Switch view">
+      <button data-view="all" class="on">Full view</button><button data-view="ue">Unit Economic view</button><button data-view="org">Org chart view</button><button data-view="act">Activities view</button>
+    </div>
     <svg id="minimap"></svg>
   </section>
   <div id="divider" title="Drag to resize"></div>
@@ -1258,7 +1266,7 @@ wrap.addEventListener('wheel',e=>{
 },{passive:false});
 let drag=null;
 wrap.addEventListener('pointerdown',e=>{
-  if(e.target.closest('.zoomUI,.legend,.modeBox,#minimap')) return;
+  if(e.target.closest('.zoomUI,.legend,.modeBox,#minimap,#viewBar')) return;
   drag={x:e.clientX,y:e.clientY,tx:state.tx,ty:state.ty,moved:false,target:e.target};
   wrap.setPointerCapture(e.pointerId);
 });
@@ -1378,7 +1386,9 @@ function preset(p){
   if(p==='act'){ state.masterOff=new Set(['UE']); }
   if(p==='all'){ }
   syncChips(); refreshAll(); if(p==='act') goAct(); else fitAll(true);
+  document.querySelectorAll('#viewBar button').forEach(b=>b.classList.toggle('on',b.dataset.view===p));
 }
+(function(){ document.querySelectorAll('#viewBar button').forEach(b=>b.onclick=e=>{ e.stopPropagation(); preset(b.dataset.view); }); })();
 (function(){
   const pr=$('#presetRow');
   [['fast','Overview (fastest)'],['ue','Unit Economic only'],['org','Org chart + positions'],['act','Org + activity cards'],['all','Everything']].forEach(x=>{
